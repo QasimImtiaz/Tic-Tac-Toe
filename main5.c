@@ -4,6 +4,7 @@
 #include<stdbool.h>
 struct Game{
 	int gameId;
+	char
 	struct Move * move; 
 	struct Game * next; 
 };
@@ -32,23 +33,22 @@ void *chkMalloc (size_t sz) {
 
 
 
-void addMove(struct Move ** headRef, int moveId, int position, char mark){
+void addMove(struct Game ** game, int moveId, int position, char mark){
 	struct Move* newest = (struct Move*) malloc(sizeof(struct Move));
 	newest->moveId = moveId;
 	newest->position = position;
 	newest->mark = mark;
-	newest->next = (*headRef); 
+	newest->next = (*game)->move; 
 	newest->prev = NULL; 
-	if((*headRef) != NULL){
-		(*headRef)->prev = newest;
+	if((*game)->move != NULL){
+		(*game)->move->prev = newest;
 	}
-    (*headRef) = newest;
+    (*game)->move = newest;
 }
 
-void addGame(struct Game ** game, struct Move * move, int gameId){
+void addGame(struct Game ** game, int gameId){
 	struct Game * newest = (struct Game*) malloc(sizeof(struct Game)); 
 	newest->gameId = gameId;
-	newest->move = move; 
 	newest->next = (*game);
 	(*game) = newest;
 }
@@ -120,7 +120,8 @@ int main(){
 		scanf("%d",&option); 
 		if(option == 1){
 			char confirm[20]; 
-	
+	        int undos = 3; 
+			int undoConfirm = 0; 
 			do{
 		
 		
@@ -129,7 +130,7 @@ int main(){
 				int moves = 0;
 		 
 		
-				struct Move* move = NULL; 
+				//struct Move* move = NULL; 
 				square[1] = '1';
 				square[2] = '2';
 				square[3] = '3';
@@ -141,8 +142,9 @@ int main(){
 				square[9] = '9';
 		
 				//games++;
-				//addGame(&game, games);
+				
 				do{
+					
 					board();
 					player = (player % 2) ? 1 : 2;
 					printf("Player %d, enter a number: ", player);
@@ -151,66 +153,238 @@ int main(){
 					//addGame(&game, games);
 		
 					if(choice == 1 && square[1] == '1'){
-						addMove(&move, moves,choice, mark);
 						square[1] = mark;
+						board();
+						if(undos > 0){
+							printf("Press 1 to undo and redo or press any number to continue - You have %d undos left/n", undos);
+							scanf("%d", &undoConfirm);
+							if(undoConfirm == 1){
+								square[1] = '1';
+								player--; 
+								undos--; 
+							}
+							else{
+									
+								addMove(&game, moves,choice, mark);
+									moves++;
+								}		
+							}
+						else {
+								
+							addMove(&game, moves,choice, mark);
+							
 			
-						moves++;
+							moves++;
+						}
 					}
 		
 					else if(choice == 2 && square[2] == '2'){
-						addMove(&move, moves,choice, mark);
 						square[2] = mark;
+						board();
+						if(undos > 0){
+							printf("Press 1 to undo and redo or press any number to continue - You have %d undos left/n", undos);
+							scanf("%d", &undoConfirm);
+							if(undoConfirm == 1){
+								square[2] = '2';
+								player--;
+								undos--; 
+							}
+							else {
+									
+								addMove(&game, moves,choice, mark);
+								moves++;
+							}		
+						}
+						else {
+								
+							addMove(&game, moves,choice, mark);
+							
 			
-						moves++;
+							moves++;
+						}
 					}
 		
 					else if(choice == 3 && square[3] == '3'){
-						addMove(&move, moves,choice, mark);
 						square[3] = mark;
+						board(); 
+						if(undos > 0){
+							printf("Press 1 to undo and redo or press any number to continue - You have %d undos left/n", undos);
+							scanf("%d", &undoConfirm);
+							if(undoConfirm == 1){
+								square[3] = '3';
+								undos--; 
+								player--;
+							}
+							else {
+									
+								addMove(&game, moves,choice, mark);
+								moves++;
+							}		
+						}
+						else {
+								
+							addMove(&game, moves,choice, mark);
+							
 			
-						moves++;
+							moves++;
+						}
 					}
 		
 					else if(choice == 4 && square[4] == '4'){
-						addMove(&move, moves,choice, mark);
 						square[4] = mark;
+						board(); 
+						if(undos > 0){
+							printf("Press 1 to undo and redo or press any number to continue - You have %d undos left/n", undos);
+							scanf("%d", &undoConfirm);
+							if(undoConfirm == 1){
+								square[4] = '4';
+								undos--; 
+								player--;
+							}
+							else {
+									
+								addMove(&game, moves,choice, mark);
+								moves++;
+							}		
+						}
+						else {
+								
+							addMove(&game, moves,choice, mark);
+							
 			
-						moves++;
+							moves++;
+						}
 					}
 		
 					else if(choice == 5 && square[5] == '5'){
-						addMove(&move, moves,choice, mark);
 						square[5] = mark;
+						board(); 
+						if(undos > 0){
+							printf("Press 1 to undo and redo or press any number to continue - You have %d undos left/n", undos);
+							scanf("%d", &undoConfirm);
+							if(undoConfirm == 1){
+								square[5] = '5';
+								undos--; 
+								player--;
+							}
+							else {
+									
+								addMove(&game, moves,choice, mark);
+								moves++;
+							}		
+						}
+						else {
+								
+							addMove(&game, moves,choice, mark);
+							
 			
-						moves++;
+							moves++;
+						}
 					}
 		
 					else if(choice == 6 && square[6] == '6'){
-						addMove(&move, moves,choice, mark);
 						square[6] = mark;
+						board();
+						if(undos > 0){
+							printf("Press 1 to undo and redo or press any number to continue - You have %d undos left/n", undos);
+							scanf("%d", &undoConfirm);
+							if(undoConfirm == 1){
+								square[6] = '6';
+								undos--; 
+								player--;
+							}
+							else {
+									
+								addMove(&game, moves,choice, mark);
+								moves++;
+							}		
+						}
+						else {
+								
+							addMove(&game, moves,choice, mark);
+							
 			
-						moves++;
+							moves++;
+						}
 					}
 		
 					else if(choice == 7 && square[7] == '7'){
-						addMove(&move, moves,choice, mark);
 						square[7] = mark;
-				
-						moves++;
+						board(); 
+						if(undos > 0){
+							printf("Press 1 to undo and redo or press any number to continue - You have %d undos left/n", undos);
+							scanf("%d", &undoConfirm);
+							if(undoConfirm == 1){
+								square[7] = '7';
+								undos--; 
+								player--;
+							}
+							else {
+									
+								addMove(&game, moves,choice, mark);
+								moves++;
+							}		
+						}
+						else {
+								
+							addMove(&game, moves,choice, mark);
+							
+			
+							moves++;
+						}
 					}
 		
 					else if(choice == 8 && square[8] == '8'){
-						addMove(&move, moves,choice, mark);
-						square[8] = mark; 
-				
-						moves++;
+						square[8] = mark;
+						board(); 
+						if(undos > 0){
+							printf("Press 1 to undo and redo or press any number to continue - You have %d undos left/n", undos);
+							scanf("%d", &undoConfirm);
+							if(undoConfirm == 1){
+								square[8] = '8';
+								undos--; 
+								player--;
+							}
+							else {
+									
+								addMove(&game, moves,choice, mark);
+								moves++;
+							}		
+						}
+							
+						else {
+								
+							addMove(&game, moves,choice, mark);
+							
+			
+							moves++;
+						}
 					}
 		
 					else if(choice == 9 && square[9] == '9'){
-						addMove(&move, moves,choice, mark);
-						square[9] = mark; 
+						square[9] = mark;
+						board(); 
+						if(undos > 0){
+							printf("Press 1 to undo and redo or press any number to continue - You have %d undos left/n", undos);
+							scanf("%d", &undoConfirm);
+							if(undoConfirm == 1){
+								square[9] = '9';
+								undos--; 
+								player--; 
+							}
+							else {
+									
+								addMove(&game, moves,choice, mark);
+								moves++;
+							}		
+						}
+						else {
+								
+							addMove(&game, moves,choice, mark);
+							
 			
-						moves++;
+							moves++;
+						}
 					}
 		
 					else{
@@ -218,6 +392,7 @@ int main(){
 						player--;
 						getch();
 					}
+					
 					i = checkwin(); 
 					player++;
 				}while(i == -1);
@@ -226,10 +401,12 @@ int main(){
 				if(i == 1){
 					printf("==>\aPlayer %d win\n", --player);
 		
-					addGame(&game,move, games);
-					printGames(game);
-					games++;
-					printf("Success");
+					//addGame(&game,move, games);
+					//printf("Game number is %d", games);
+					//printGames(game);
+					//games++;
+					addGame(&game, games);
+				    games++;
 					printf("Play Again?");
 					scanf("%s", &confirm); 
 				
@@ -239,11 +416,13 @@ int main(){
 				else{
 					printf("==>\aGame draw\n");
 			
-					addGame(&game,move, games);
-					printGames(game);
+					//addGame(&game,move, games);
+					//printf("Game number is %d", games);
+					//printGames(game);
+					//games++;
+					
+			        addGame(&game, games);
 					games++;
-					printf("Success");
-			
 					//board();
 					printf("Play Again?");
 					scanf("%s", &confirm); 
