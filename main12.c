@@ -4,302 +4,404 @@
 #include <conio.h>
 
 char square[10] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
+char choices[10] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
+char marks[10] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
+
 
 /*Move of a doubly linked list */
 
 struct Game {
 	int gameId;
-    char marks[10]; 
-	
+	char choices[10];
+    char marks[10];
 	struct Game *next;
-	struct Game *prev; 
+	
 };
 
 
 
 
-//add move to game
-void addGame(struct Game **game, int gameId, char marks[10]){
-	//insert at start of list 
-	struct Game* new_game = (struct Game*)malloc(sizeof(struct Game));
-	struct Game* last_game = *game; 
-	new_game->gameId = gameId;
-	 
+void reset(){
+	square[1] = '1';
+	square[2] = '2';
+	square[3] = '3';
+	square[4] = '4';
+	square[5] = '5';
+	square[6] = '6';
+	square[7] = '7';
+	square[8] = '8';
+	square[9] = '9';
+}		
 
-	strcpy(new_game->marks, marks); 
+void addGame(struct Game ** first_game, int game_id, char choices[10], char marks[10]){
+	struct Game * new_game = (struct Game*) malloc(sizeof(struct Game)); 
+	struct Game * last_game = *first_game;
+	new_game->gameId = game_id;
+	strcpy(new_game->choices,choices);
+	printf("choices are %s\n", new_game->choices);
+	strcpy(new_game->marks, marks);
+	printf("marks are %s\n", new_game->marks); 
 	new_game->next = NULL; 
-	if(*game == NULL){
-		new_game->prev = NULL;
-		*game = new_game;
-		return;
-		
+	if(*first_game == NULL){
+		*first_game = new_game;
+		return; 
 	}
 	while(last_game->next != NULL){
 		last_game = last_game->next; 
 	}
-	
 	last_game->next = new_game;
-	new_game->prev = last_game;
-	
 	return; 
 }
-
-void readFromFile(struct Game ** first_game, FILE * f){
-	char * line = malloc(sizeof(char));
-	struct Game * new_game = (struct Game*)malloc(sizeof(struct Game)); 
-	struct Game * last_game = *first_game;
-	f = fopen("list.txt", "r"); 
-	int count = 0; 
-	while(fgets(line, sizeof(line), f)){
+void ReadFromFileToLinkedList(struct Game ** first_game){
+	FILE * file = fopen("list.txt", "r");
+	char marks[10];
+	char choices[10]; 
+	int count = 0;
+	
+	while(fscanf(file, "%s %s", choices, marks) != EOF){
 		
-		new_game->gameId = count; 
-		strcpy(line, new_game->marks);
-		new_game->next = NULL; 
-		if(*first_game == NULL){				
-			new_game->prev = NULL; 
-			*first_game = new_game; 
-			return; 
-		}
-		while(last_game->next != NULL){
-			last_game = last_game->next;
-		}
-		last_game->next = new_game;
-		new_game->prev = last_game; 
+		
+		addGame(first_game, count,choices, marks); 
+		
 		count++;
 	}
+	fclose(file); 
+}
+
+
+		
+	
+		
+
+void board();
+void search(struct Game ** first_game, int game_id){
+	
+	int found = 0; 
+	struct Game *current_game = *first_game;
+	while(current_game != NULL){
+		if(current_game->gameId == game_id){
+			found = 1; 
+			for(int i = 1; i < 10; i ++){
+				 
+				if(current_game->choices[i] == '1' && (current_game->marks[i] == 'O' || current_game->marks[i] == 'X')){
+					square[1] = current_game->marks[i]; 
+					board(); 
+				}
+				else if(current_game->choices[i] == '2' && (current_game->marks[i] == 'O' || current_game->marks[i] == 'X')){
+					square[2] = current_game->marks[i]; 
+					board(); 
+				}
+				else if(current_game->choices[i] == '3' && (current_game->marks[i] == 'O' || current_game->marks[i] == 'X')){
+					square[3] = current_game->marks[i];
+					board(); 
+				}
+				else if(current_game->choices[i] == '4' && (current_game->marks[i] == 'O' || current_game->marks[i] == 'X')){
+					square[4] = current_game->marks[i];
+					board(); 
+				}
+				else if(current_game->choices[i] == '5' && (current_game->marks[i] == 'O' || current_game->marks[i] == 'X')){
+					square[5] = current_game->marks[i];
+					board(); 
+				}
+				else if(current_game->choices[i] == '6' && (current_game->marks[i] == 'O' || current_game->marks[i] == 'X')){
+					square[6] = current_game->marks[i];
+					board(); 
+				}
+				else if(current_game->choices[i] == '7' && (current_game->marks[i] == 'O' || current_game->marks[i] == 'X')){
+					square[7] = current_game->marks[i];
+					board(); 
+				}
+				else if(current_game->choices[i] == '8' && (current_game->marks[i] == 'O' || current_game->marks[i] == 'X')){
+					square[8] = current_game->marks[i];
+					board(); 
+				}
+				else if(current_game->choices[i] == '9' && (current_game->marks[i] == 'O' || current_game->marks[i] == 'X')){
+					square[9] = current_game->marks[i];
+					board(); 
+				}
+			}
+			
+			 
+		}
+		current_game = current_game->next; 
+	}
+				
+	if(found == 0){
+		printf("Game Id not found"); 
+	}
+}
+
+void write_array_to_file(char choices[10], char marks[10])
+{
+    FILE *fp = fopen("list.txt", "a+");
+    if (fp != NULL)
+    {
+		
+		fprintf(fp,"%s %s\n",choices, marks); 
+        fclose(fp);
+    }
+}
+
+void replay(char * choices, char * marks){
+	for(int i = 1; i <10; i++){
+		
+		if(choices[i] == '1' && (marks[i] == 'O' || marks[i] == 'X')){
+			square[1] = marks[i]; 
+			board(); 
+		}
+		else if(choices[i] == '2' && (marks[i] == 'O' || marks[i] == 'X')){
+			square[2] = marks[i]; 
+			board(); 
+		}
+		else if(choices[i] == '3' && (marks[i] == 'O' || marks[i] == 'X')){
+			square[3] = marks[i];
+			board(); 
+		}
+		else if(choices[i] == '4' && (marks[i] == 'O' || marks[i] == 'X')){
+			square[4] = marks[i];
+			board(); 
+		}
+		else if(choices[i] == '5' && (marks[i] == 'O' || marks[i] == 'X')){
+			square[5] = marks[i];
+			board(); 
+		}
+		else if(choices[i] == '6' && (marks[i] == 'O' || marks[i] == 'X')){
+			square[6] = marks[i];
+			board(); 
+		}
+		else if(choices[i] == '7' && (marks[i] == 'O' || marks[i] == 'X')){
+			square[7] = marks[i];
+			board(); 
+		}
+		else if(choices[i] == '8' && (marks[i] == 'O' || marks[i] == 'X')){
+			square[8] = marks[i];
+			board(); 
+		}
+		else if(choices[i] == '9' && (marks[i] == 'O' || marks[i] == 'X')){
+			square[9] = marks[i];
+			board(); 
+		}
+					
+	}
+}	
+
+void reset_choices_and_marks(char * choices, char * marks){
+	choices[1] = '1';
+	choices[2] = '2';
+	choices[3] = '3';
+	choices[4] = '4';
+	choices[5] = '5';
+	choices[6] = '6';
+	choices[7] = '7';
+	choices[8] = '8';
+	choices[9] = '9';
+	marks[1] = '1';
+	marks[2] = '2';
+	marks[3] = '3';
+	marks[4] = '4';
+	marks[5] = '5';
+	marks[6] = '6';
+	marks[7] = '7';
+	marks[8] = '8';
+	marks[9] = '9';
 }
 	
 	
-
 int checkwin();
-void board();
 
-
-
-int main(){
-	
-	
-
-	//FILE * fptr; 
-	int games = 0; 
-	//empty list
-	//struct Move* head = NULL;
-	struct Game* game = NULL; 
+int main(){ 
 	char confirm[20]; 
-	
-	//games++;
-	//addGame(&game, games);
-	do{
-				square[1] = '1';
-				square[2] = '2';
-				square[3] = '3';
-				square[4] = '4';
-				square[5] = '5';
-				square[6] = '6';
-				square[7] = '7';
-				square[8] = '8';
-				square[9] = '9';
-				
-				int player = 1, i, choice;
-				char mark; 
-				char marks[10] = {'0','1', '2', '3', '4', '5', '6', '7', '8', '9'};
-		do{
-		
-			board();
-			player = (player % 2) ? 1 : 2;
-			printf("Player %d, enter a number: ", player);
-			scanf("%d", &choice);
-			mark = (player == 1) ? 'X' : 'O';
-		
-		
-		
-			if(choice == 1 && square[1] == '1'){
-				
-			
-				square[1] = mark;
-				marks[1] = square[1]; 
-			
-			}
-		
-			else if(choice == 2 && square[2] == '2'){
-			
-				
-				square[2] = mark;
-				marks[2] = square[2]; 
-			
-			
-			}
-		
-			else if(choice == 3 && square[3] == '3'){
-				
-				
-				square[3] = mark;
-				marks[3] = square[3]; 
-			
-			}
-		
-			else if(choice == 4 && square[4] == '4'){
-				
-			
-				square[4] = mark;
-				marks[4] = square[4]; 
-			
-			
-			}
-		
-			else if(choice == 5 && square[5] == '5'){
-				
-			
-				square[5] = mark;
-				marks[5] = square[5]; 
-			
-			
-			}
-		
-			else if(choice == 6 && square[6] == '6'){
-			
-			
-				square[6] = mark;
-				marks[6] = square[6]; 
-			
-			}
-		
-			else if(choice == 7 && square[7] == '7'){
-			
-			
-				square[7] = mark;
-				marks[7] = square[7]; 
-			
-			
-			}
-		
-			else if(choice == 8 && square[8] == '8'){
-			
-				square[8] = mark; 
-				marks[8] = square[8]; 
-			
-			
-			}
-		
-			else if(choice == 9 && square[9] == '9'){
-			
-			
-				square[9] = mark; 
-				marks[9] = square[9]; 
-			
-			}
-		
-			else{
-				printf("Invalid move ");
-				player--;
-				getch();
-			}
-			i = checkwin(); 
-			player++;
-		}while(i == -1);
-	
-		board(); 
-		if(i == 1){
-			printf("==>\aPlayer %d win ", --player);
-			FILE * fptr; 
-			fptr = fopen("list.txt", "a+");
-			printf("test");
-			if(fptr == NULL){
-				printf("Error\n");
-			}
-			else{
-				fprintf(fptr,"%s\n", square);
-			
-			}
-			fclose(fptr); 
-			
-			square[0] = '0';
-			square[1] = '1';
-			square[2] = '2';
-			square[3] = '3';
-			square[4] = '4';
-			square[5] = '5';
-			square[6] = '6';
-			square[7] = '7';
-			square[8] = '8';
-			square[9] = '9';
-			
-			board();
-			
-			for(int i = 1; i <10; i++){
-				
-				square[i] = marks[i];
-				board(); 
-					
-				
-				
-			}
-			
-			
-			
-			
-			printf("Play Again?");
-			scanf("%s", &confirm); 
-				
-			
-		
+	while(1){
+		int c;
+		printf("\n0 - Quit, 1 - Play Game, 2 - Search"); 
+		scanf("%d",&c); 
+		if(c == 0){
+			exit(0);
 		}
-		else{
-			printf("==>\aGame draw");
-			FILE * fptr; 
-			fptr = fopen("list.txt", "a+");
-			if(fptr == NULL){
-				printf("Error\n");
-			}
-			else{
+		else if(c == 1){
+			do{
+					reset(); 
+				
+					int player = 1, i, choice;
+					char mark; 
+					
+					int j = 1; 
+					reset_choices_and_marks(choices, marks);
+					
+					
+				do{
 		
-			
-			
-				fprintf(fptr,"%s\n", square);
-			
+					board();
+					player = (player % 2) ? 1 : 2;
+					printf("Player %d, enter a number: ", player);
+					scanf("%d", &choice);
+					mark = (player == 1) ? 'X' : 'O';
 		
-			}
+		
+		
+					if(choice == 1 && square[1] == '1'){
+				
+			
+						square[1] = mark;
+						marks[j] = mark; 
+						
+						choices[j] = '1'; 
+						printf("choice is %d and j is %d", choices[j], j);
+						
+						j++; 		
+			
+					}	
+			
+					else if(choice == 2 && square[2] == '2'){
+			
+				
+						square[2] = mark;
+						marks[j] = mark;
+						choices[j] = '2';
+						printf("choice is %d and j is %d", choices[j], j);
+						j++; 
+			
+			
+					}
+		
+					else if(choice == 3 && square[3] == '3'){
+				
+				
+						square[3] = mark; 
+						marks[j] = mark;
+						choices[j] = '3';
+						printf("choice is %d and j is %d", choices[j], j);
+						j++; 
+			
+					}
+		
+					else if(choice == 4 && square[4] == '4'){
+				
+			
+						square[4] = mark;
+						marks[j] = mark; 
+						choices[j] = '4';
+						printf("choice is %d and j is %d", choices[j], j);
+						j++; 
+			
+			
+					}
+		
+					else if(choice == 5 && square[5] == '5'){
+				
+			
+						square[5] = mark;
+						marks[j] = mark; 
+						choices[j] = '5';
+						printf("choice is %d and j is %d", choices[j], j);					
+						j++; 
+			
+			
+					}
+		
+					else if(choice == 6 && square[6] == '6'){
+			
+			
+						square[6] = mark;
+						marks[j] = mark; 
+						choices[j] = '6';
+						printf("choice is %d and j is %d", choices[j], j);
+						j++; 
+			
+					}
+		
+					else if(choice == 7 && square[7] == '7'){
+			
+			
+						square[7] = mark;
+						marks[j] = mark; 
+						choices[j] = '7';
+						printf("choice is %d and j is %d", choices[j], j);
+						j++; 
+			
+			
+					}
+		
+					else if(choice == 8 && square[8] == '8'){
+			
+						square[8] = mark; 
+						marks[j] = mark; 
+						choices[j] = '8';
+						printf("choice is %d and j is %d", choices[j], j);
+						j++; 
+			
+			
+					}
+		
+					else if(choice == 9 && square[9] == '9'){
+			
+			
+						square[9] = mark; 
+						marks[j] = mark; 
+						choices[j] = '9'; 
+						printf("choice is %d and j is %d", choices[j], j);
+						j++; 
+			
+					}	
+		
+					else{
+						printf("Invalid move ");
+						player--;
+						getch();
+					}
+					i = checkwin(); 
+					player++;
+				}while(i == -1);
 	
-			
-			fclose(fptr); 
-			square[0] = '0';
-			square[1] = '1';
-			square[2] = '2';
-			square[3] = '3';
-			square[4] = '4';
-			square[5] = '5';
-			square[6] = '6';
-			square[7] = '7';
-			square[8] = '8';
-			square[9] = '9';
-			
-			board();
-		
-			for(int i = 0; i <10; i++){
-				
-				square[i] = marks[i];
 				board(); 
-				
-			}
-			printf("Play Again?");
-			scanf("%s", &confirm); 
-				
+				if(i == 1){
+					printf("==>\aPlayer %d win\n ", --player);
+					write_array_to_file(choices, marks); 
+					reset(); 
+					board();
+					replay(choices,marks); 
+					printf("Play Again?");
+					scanf("%s", &confirm); 
+				}
+				else{
+					printf("==>\aGame draw");
+					write_array_to_file(choices, marks);	
+					reset(); 
+					board();
+					replay(choices,marks); 
+					printf("Play Again?");
+					scanf("%s", &confirm); 
+				}		
 		
-		}		
+				getch();
+			}while(strcmp(confirm, "yes") == 0); 
+		}
+		else if(c == 2){
+			reset(); 
+			board(); 
+			struct Game * game = NULL;
+			printf("test 1\n"); 
+			ReadFromFileToLinkedList(&game);
+			
+			printf("test 2\n"); 
+			int game_id = 0; 
+			printf("\nEnter Game Id: ");
+			scanf("%d", &game_id);
+			search(&game, game_id); 	
+			printf("game_id is %d\n", game_id); 
+		}
 		
-		
-		
-		getch();
-	}while(strcmp(confirm, "yes") == 0); 
-	FILE * fptr = fptr = fopen("list.txt", "a+");
-	readFromFile(&game, fptr); 
-			 
-	fclose(fptr); 
+		else{
+			printf("False Option");
+		}
+			
+	}
+
+	 
 	return 0;
 }
 
 /*********************************************
-
 FUNCTION TO RETURN GAME STATUS
 1 FOR GAME IS OVER WITH RESULT
 -1 FOR GAME IS IN PROGRESS
