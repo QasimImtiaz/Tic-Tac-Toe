@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <conio.h>
+#include <limits.h>
+
 
 char square[10] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
 char choices[10] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
@@ -17,6 +19,59 @@ struct Game {
 	struct Game *next;
 	
 };
+
+struct movesStack{
+	int top;
+	unsigned capacity;
+	char*movesArray;
+};
+
+struct movesStack * createStack(unsigned capacity){
+	struct movesStack * moves = (struct movesStack*) malloc(sizeof(struct movesStack));
+	moves->capacity = capacity;
+	moves->top = -1;
+	moves->movesArray = (char*) malloc(moves->capacity * sizeof(char));
+	return moves;
+}
+
+int isFull(struct movesStack * moves){
+	return moves->top == moves->capacity - 1; 
+}
+
+int isEmpty(struct movesStack * moves){
+	return moves->top == -1;
+}
+
+void push(struct movesStack * moves, char move){
+	if(isFull(moves)){
+		printf("\nIs Full\n"); 
+		return;
+	}
+	moves->movesArray[++moves->top] = move; 
+	
+}
+
+char pop(struct movesStack * moves){
+	if(isEmpty(moves)){
+		printf("Error: You can't undo a move!"); 
+		return moves->top; 
+	}
+	return moves->movesArray[moves->top--];
+}
+
+
+
+
+
+
+char clearMoves(struct movesStack * moves){
+	char c;
+	while(!isEmpty(moves)){
+		c = pop(moves);
+	}
+	
+	return c; 
+}
 
 
 
@@ -183,7 +238,13 @@ void replay(char * choices, char * marks){
 		}
 					
 	}
-}	
+}
+
+						
+
+
+
+					
 
 void reset_choices_and_marks(char * choices, char * marks){
 	choices[1] = '1';
@@ -205,7 +266,76 @@ void reset_choices_and_marks(char * choices, char * marks){
 	marks[8] = '8';
 	marks[9] = '9';
 }
-	
+
+void undo(struct movesStack * undoMarks, struct movesStack * undoChoices, struct movesStack * redoMarks, struct movesStack * redoChoices){
+	char mark = pop(undoMarks);
+	char choice = pop(undoChoices); 
+	push(redoMarks, mark);
+	push(redoChoices, choice);
+	if(choice == '1'){
+		square[1] = '1';
+	}
+	else if(choice == '2'){
+		square[2] = '2';
+	}
+	else if(choice == '3'){
+		square[3] = '3';
+	}	
+	else if(choice == '4'){
+		square[4] = '4';
+	}
+	else if(choice == '5'){
+		square[5] = '5';
+	}
+	else if(choice == '6'){		
+		square[6] = '6';
+	}
+	else if(choice == '7'){
+		square[7] = '7'; 
+	}
+	else if(choice == '8'){
+		square[8] = '8';
+	}
+	else if(choice == '9'){ 
+		square[9] = '9';
+	}
+}
+
+void redo(struct movesStack * undoMarks, struct movesStack * undoChoices, struct movesStack * redoMarks, struct movesStack * redoChoices){
+	char mark = pop(redoMarks);
+	char choice = pop(redoChoices); 
+	push(undoMarks, mark);
+	push(undoChoices, choice);
+	if(choice == '1'){
+		square[1] = mark; 
+	}
+	else if(choice == '2'){
+		square[2] = mark; 
+	}
+	else if(choice == '3'){
+		square[3] = mark; 
+	}	
+	else if(choice == '4'){
+		square[4] = mark; 
+	}
+	else if(choice == '5'){
+		square[5] = mark; 
+	}
+	else if(choice == '6'){		
+		square[6] = mark; 
+	}
+	else if(choice == '7'){
+		square[7] = mark; 
+	}
+	else if(choice == '8'){
+		square[8] = mark; 
+	}
+	else if(choice == '9'){ 
+		square[9] = mark; 
+	}
+}
+			
+
 	
 int checkwin();
 
@@ -222,135 +352,362 @@ int main(){
 			do{
 					reset(); 
 				
-					int player = 1, i, choice;
-					char mark; 
+					int player = 1, i, choice; 
+					
+				    char mark; 
 					
 					int j = 1; 
 					reset_choices_and_marks(choices, marks);
 					
+					 
+					
+					struct movesStack * playerOneUndoMarks = createStack(5);
+					struct movesStack * playerOneUndoChoices = createStack(5);
+					struct movesStack * playerOneRedoMarks = createStack(5);
+					struct movesStack * playerOneRedoChoices = createStack(5); 
+					struct movesStack * playerTwoUndoMarks = createStack(5);
+					struct movesStack * playerTwoUndoChoices = createStack(5);
+					struct movesStack * playerTwoRedoMarks = createStack(5);
+					struct movesStack * playerTwoRedoChoices = createStack(5); 
+					board(); 
+					
 					
 				do{
-		
-					board();
+					
+				    board();
+					
 					player = (player % 2) ? 1 : 2;
-					printf("Player %d, enter a number: ", player);
-					scanf("%d", &choice);
 					mark = (player == 1) ? 'X' : 'O';
-		
-		
+				
+					printf("Player %d, enter a number ", player);
+					scanf("%d", &choice);
+					
 		
 					if(choice == 1 && square[1] == '1'){
-				
-			
 						square[1] = mark;
-						marks[j] = mark; 
+						marks[j] = mark;	
+						choices[j] = '1';
+						j++;
+						//clearMoves(redoChoices); 
+						//clearMoves(redoMarks); 
+						if(player == 1){
+							
+							push(playerOneUndoChoices, '1');
+							push(playerOneUndoMarks, mark);
+							board(); 
+							if(!(isEmpty(playerOneRedoChoices) && isEmpty(playerOneRedoMarks))){
+								char choice = pop(playerOneRedoChoices); 
+								char mark = pop(playerOneRedoMarks); 
+								player--;
+							}
+						}
+						else{
+							
+							push(playerTwoUndoChoices, '1');
+							push(playerTwoUndoMarks, mark); 
+							board();
+							if(!(isEmpty(playerTwoRedoChoices) && isEmpty(playerTwoRedoMarks))){
+								char choice = pop(playerTwoRedoChoices); 
+								char mark = pop(playerTwoRedoMarks); 
+								player--;
+							}
+						}
+						//player++;
+						//undoRedo(player, undoMarks, undoChoices, redoMarks, redoChoices);
+						//player++; 
 						
-						choices[j] = '1'; 
-						printf("choice is %d and j is %d", choices[j], j);
-						
-						j++; 		
-			
 					}	
 			
 					else if(choice == 2 && square[2] == '2'){
-			
-				
 						square[2] = mark;
 						marks[j] = mark;
 						choices[j] = '2';
-						printf("choice is %d and j is %d", choices[j], j);
-						j++; 
-			
-			
+						j++;
+						if(player == 1){
+							
+							push(playerOneUndoChoices, '2');
+							push(playerOneUndoMarks, mark);
+							board(); 
+							if(!(isEmpty(playerOneRedoChoices) && isEmpty(playerOneRedoMarks))){
+								char choice = pop(playerOneRedoChoices); 
+								char mark = pop(playerOneRedoMarks); 
+								player--;
+							}
+						}
+						else{
+							
+							push(playerTwoUndoChoices, '2');
+							push(playerTwoUndoMarks, mark); 
+							board();
+							if(!(isEmpty(playerTwoRedoChoices) && isEmpty(playerTwoRedoMarks))){
+								char choice = pop(playerTwoRedoChoices); 
+								char mark = pop(playerTwoRedoMarks); 
+								player--;
+							}
+						}
 					}
+						
+					
 		
 					else if(choice == 3 && square[3] == '3'){
-				
-				
 						square[3] = mark; 
 						marks[j] = mark;
 						choices[j] = '3';
-						printf("choice is %d and j is %d", choices[j], j);
-						j++; 
-			
+						j++;
+						if(player == 1){
+							
+							push(playerOneUndoChoices, '3');
+							push(playerOneUndoMarks, mark);
+							board(); 
+							if(!(isEmpty(playerOneRedoChoices) && isEmpty(playerOneRedoMarks))){
+								char choice = pop(playerOneRedoChoices); 
+								char mark = pop(playerOneRedoMarks); 
+								player--;
+							}
+						}
+						else{
+							
+							push(playerTwoUndoChoices, '3');
+							push(playerTwoUndoMarks, mark); 
+							board();
+							if(!(isEmpty(playerTwoRedoChoices) && isEmpty(playerTwoRedoMarks))){
+								char choice = pop(playerTwoRedoChoices); 
+								char mark = pop(playerTwoRedoMarks); 
+								player--;
+							}
+						}
 					}
+						
+				
 		
 					else if(choice == 4 && square[4] == '4'){
-				
-			
 						square[4] = mark;
 						marks[j] = mark; 
 						choices[j] = '4';
-						printf("choice is %d and j is %d", choices[j], j);
 						j++; 
-			
-			
+						if(player == 1){
+							
+							push(playerOneUndoChoices, '4');
+							push(playerOneUndoMarks, mark);
+							board(); 
+							if(!(isEmpty(playerOneRedoChoices) && isEmpty(playerOneRedoMarks))){
+								char choice = pop(playerOneRedoChoices); 
+								char mark = pop(playerOneRedoMarks); 
+								player--;
+							}
+						}
+						else{
+							push(playerTwoUndoChoices, '4');
+							push(playerTwoUndoMarks, mark); 
+							board();
+							if(!(isEmpty(playerTwoRedoChoices) && isEmpty(playerTwoRedoMarks))){
+								char choice = pop(playerTwoRedoChoices); 
+								char mark = pop(playerTwoRedoMarks); 
+								player--;
+							}
+						}
 					}
 		
 					else if(choice == 5 && square[5] == '5'){
-				
-			
 						square[5] = mark;
 						marks[j] = mark; 
 						choices[j] = '5';
-						printf("choice is %d and j is %d", choices[j], j);					
-						j++; 
-			
-			
+						j++;
+						if(player == 1){
+							
+							push(playerOneUndoChoices, '5');
+							push(playerOneUndoMarks, mark);
+							board(); 
+							if(!(isEmpty(playerOneRedoChoices) && isEmpty(playerOneRedoMarks))){
+								char choice = pop(playerOneRedoChoices); 
+								char mark = pop(playerOneRedoMarks); 
+								player--;
+							}
+						}
+						else{
+							push(playerTwoUndoChoices, '5');
+							push(playerTwoUndoMarks, mark); 
+							board();
+							if(!(isEmpty(playerTwoRedoChoices) && isEmpty(playerTwoRedoMarks))){
+								char choice = pop(playerTwoRedoChoices); 
+								char mark = pop(playerTwoRedoMarks); 
+								player--;
+							}
+						}
+						
 					}
 		
 					else if(choice == 6 && square[6] == '6'){
-			
-			
 						square[6] = mark;
 						marks[j] = mark; 
 						choices[j] = '6';
-						printf("choice is %d and j is %d", choices[j], j);
-						j++; 
-			
+						j++;
+						if(player == 1){
+							
+							push(playerOneUndoChoices, '6');
+							push(playerOneUndoMarks, mark);
+							board(); 
+							if(!(isEmpty(playerOneRedoChoices) && isEmpty(playerOneRedoMarks))){
+								char choice = pop(playerOneRedoChoices); 
+								char mark = pop(playerOneRedoMarks); 
+								player--;
+							}
+						}
+						else{
+							push(playerTwoUndoChoices, '6');
+							push(playerTwoUndoMarks, mark); 
+							board();
+							if(!(isEmpty(playerTwoRedoChoices) && isEmpty(playerTwoRedoMarks))){
+								char choice = pop(playerTwoRedoChoices); 
+								char mark = pop(playerTwoRedoMarks); 
+								player--;
+							}
+						}
 					}
 		
-					else if(choice == 7 && square[7] == '7'){
-			
-			
+					else if(choice == 7 && square[7] == '7'){			
 						square[7] = mark;
 						marks[j] = mark; 
 						choices[j] = '7';
-						printf("choice is %d and j is %d", choices[j], j);
 						j++; 
-			
-			
+						if(player == 1){
+							
+							push(playerOneUndoChoices, '7');
+							push(playerOneUndoMarks, mark);
+							board(); 
+							if(!(isEmpty(playerOneRedoChoices) && isEmpty(playerOneRedoMarks))){
+								char choice = pop(playerOneRedoChoices); 
+								char mark = pop(playerOneRedoMarks); 
+								player--;
+							}
+						}
+						else{
+							push(playerTwoUndoChoices, '7');
+							push(playerTwoUndoMarks, mark); 
+							board();
+							if(!(isEmpty(playerTwoRedoChoices) && isEmpty(playerTwoRedoMarks))){
+								char choice = pop(playerTwoRedoChoices); 
+								char mark = pop(playerTwoRedoMarks); 
+								player--;
+							}
+						}
 					}
 		
 					else if(choice == 8 && square[8] == '8'){
-			
 						square[8] = mark; 
 						marks[j] = mark; 
 						choices[j] = '8';
-						printf("choice is %d and j is %d", choices[j], j);
-						j++; 
-			
-			
+						j++;
+						if(player == 1){
+							
+							push(playerOneUndoChoices, '8');
+							push(playerOneUndoMarks, mark);
+								
+							board();
+							if(!(isEmpty(playerOneRedoChoices) && isEmpty(playerOneRedoMarks))){
+								char choice = pop(playerOneRedoChoices); 
+								char mark = pop(playerOneRedoMarks); 
+								player--;
+							}						
+							
+						}
+						else{
+							push(playerTwoUndoChoices, '8');
+							push(playerTwoUndoMarks, mark); 
+							board();
+							if(!(isEmpty(playerTwoRedoChoices) && isEmpty(playerTwoRedoMarks))){
+								char choice = pop(playerTwoRedoChoices); 
+								char mark = pop(playerTwoRedoMarks); 
+								player--;
+							}
+							
+						}
 					}
-		
-					else if(choice == 9 && square[9] == '9'){
-			
-			
+					else if(choice == 9 && square[9] == '9'){	
 						square[9] = mark; 
 						marks[j] = mark; 
-						choices[j] = '9'; 
-						printf("choice is %d and j is %d", choices[j], j);
-						j++; 
-			
+						choices[j] = '9';
+						j++;			
+						
+						
+						if(player == 1){
+							
+							push(playerOneUndoChoices, '9');
+							push(playerOneUndoMarks, mark);
+							board(); 
+							if(!(isEmpty(playerOneRedoChoices) && isEmpty(playerOneRedoMarks))){
+								player--;
+							}
+						}
+						else{
+							push(playerTwoUndoChoices, '9');
+							push(playerTwoUndoMarks, mark); 
+							board();
+							if(!(isEmpty(playerTwoRedoChoices) && isEmpty(playerTwoRedoMarks))){
+								player--;
+							}
+						}
 					}	
-		
+					
+					else if(choice == 10){
+						if(player == 1 && !(isEmpty(playerOneUndoChoices) && isEmpty(playerOneUndoMarks))){
+							player--;
+							undo(playerOneUndoMarks, playerOneUndoChoices, playerOneRedoMarks, playerOneRedoChoices);
+							board();
+						}
+						else if(player == 2 && !(isEmpty(playerTwoUndoChoices) && isEmpty(playerTwoUndoMarks))){
+							player--;
+							undo(playerTwoUndoMarks, playerTwoUndoChoices, playerTwoRedoMarks, playerTwoRedoChoices);
+							board();
+						}
+						else{
+							player--; 
+							printf("You have 0 moves on the board!");
+							getch(); 
+						}
+					}
+					
+					else if(choice == 11){
+						if(player == 1 && !(isEmpty(playerOneRedoChoices) && isEmpty(playerOneRedoMarks))){
+							player--;
+							redo(playerOneUndoMarks, playerOneUndoChoices, playerOneRedoMarks, playerOneRedoChoices);
+							board();
+						}
+						else if(player == 2 && !(isEmpty(playerTwoRedoChoices) && isEmpty(playerTwoRedoMarks))){
+							player--;
+							redo(playerTwoUndoMarks, playerTwoUndoChoices, playerTwoRedoMarks, playerTwoRedoChoices);
+							board();
+						}
+						else{
+							player--; 
+							printf("Error: You can't redo!");
+							
+							getch(); 
+						}
+					}
+					
 					else{
-						printf("Invalid move ");
-						player--;
+						player--; 
+						printf("Invalid Choice ");
+						
 						getch();
 					}
-					i = checkwin(); 
+					
+				 
+						
+						
+						
+					
+						
+					
+					i = checkwin();
 					player++;
+					
+					
+					
+					
+					
+								
 				}while(i == -1);
 	
 				board(); 
@@ -360,7 +717,14 @@ int main(){
 					reset(); 
 					board();
 					replay(choices,marks); 
-					printf("Play Again?");
+					char choices[9];
+					char marks[9]; 
+					 
+						
+						
+					
+					 
+					printf("\nPlay Again?");
 					scanf("%s", &confirm); 
 				}
 				else{
