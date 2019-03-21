@@ -43,16 +43,18 @@ void addGame(struct Game ** first_game, int game_id, char choices[10], char mark
 	last_game->next = new_game;
 	return; 
 }
-void ReadFromFileToLinkedList(struct Game ** first_game){
-	FILE * file = fopen("list.txt", "r");
-	char marks[10];
-	char choices[10]; 
-	int count = 0;
-	while(fscanf(file, "%s %s", choices, marks) != EOF){
-		addGame(first_game, count,choices, marks);
-		count++;
-	}
-	fclose(file); 
+void ReadFromFileToLinkedList(struct Game ** first_game, char * fileName){
+	FILE * file = fopen(fileName, "r");
+	if(file != NULL){
+		char marks[10];
+		char choices[10]; 
+		int count = 0;
+		while(fscanf(file, "%s %s", choices, marks) != EOF){
+			addGame(first_game, count,choices, marks);
+			count++;
+		}
+		fclose(file);
+	}		
 }
 
 void search(struct Game ** first_game, int game_id){
@@ -146,6 +148,10 @@ int pop(struct Stack* stack)
     return stack->array[stack->top--]; 
 } 
 
+int pop2(struct Stack*stack){
+	return stack->array[stack->top-2]; 
+}
+
 void destroy(struct Stack * moves){
 	int i = moves->top; 
 	while(i >= 0){
@@ -176,46 +182,55 @@ void replay(struct Stack * choicesStack, struct Stack * marksStack){
 		if(choices[i] == '1' && (marks[i] == 'O' || marks[i] == 'X')){
 			square[1] = marks[i]; 
 			board(); 
+			getch(); 
 		}
 		else if(choices[i] == '2' && (marks[i] == 'O' || marks[i] == 'X')){
 			square[2] = marks[i]; 
 			board(); 
+			getch(); 
 		}
 		else if(choices[i] == '3' && (marks[i] == 'O' || marks[i] == 'X')){
 			square[3] = marks[i];
 			board(); 
+			getch(); 
 		}
 		else if(choices[i] == '4' && (marks[i] == 'O' || marks[i] == 'X')){
 			square[4] = marks[i];
 			board(); 
+			getch(); 
 		}
 		else if(choices[i] == '5' && (marks[i] == 'O' || marks[i] == 'X')){
 			square[5] = marks[i];
 			board(); 
+			getch(); 
 		}
 		else if(choices[i] == '6' && (marks[i] == 'O' || marks[i] == 'X')){
 			square[6] = marks[i];
 			board(); 
+			getch(); 
 		}
 		else if(choices[i] == '7' && (marks[i] == 'O' || marks[i] == 'X')){
 			square[7] = marks[i];
 			board(); 
+			getch(); 
 		}
 		else if(choices[i] == '8' && (marks[i] == 'O' || marks[i] == 'X')){
 			square[8] = marks[i];
-			board(); 
+			board();
+			getch();
 		}
 		else if(choices[i] == '9' && (marks[i] == 'O' || marks[i] == 'X')){
 			square[9] = marks[i];
 			board(); 
+			getch(); 
 		}
 					
 	}
 }	
 
-void write_arrays_to_file(struct Stack * choices, struct Stack * marks)
+void write_arrays_to_file(struct Stack * choices, struct Stack * marks, char * fileName)
 {
-    FILE *fp = fopen("list.txt", "a+");
+    FILE *fp = fopen(fileName, "a+");
     if (fp != NULL)
     {
 		for(int i = 0; i <= choices->top; i++){
@@ -230,6 +245,20 @@ void write_arrays_to_file(struct Stack * choices, struct Stack * marks)
 		
         fclose(fp);
     }
+	else{
+		FILE *file = fopen(fileName, "w");
+		for(int i = 0; i <= choices->top; i++){
+			fprintf(fp,"%c",choices->array[i]);
+		}
+		fprintf(fp, " "); 
+		for(int i = 0; i <= marks->top; i++){
+			fprintf(fp, "%c", marks->array[i]);
+		}
+		fprintf(fp, "\n"); 
+		
+		
+        fclose(fp);
+	}
 }
 
 void undo(struct Stack * undoMarks, struct Stack * undoChoices, struct Stack * redoMarks, struct Stack * redoChoices){
@@ -445,7 +474,21 @@ int findBestMove(char * square){
 	}
 	return bestMove;
 }
+void encrypt(char password[20], int key){
+	unsigned int i;
+	for(i = 0; i < strlen(password); ++i){
+		password[i] = password[i] - key; 
+	}
+	 
+}
 
+void decrypt(char password[20], int key){
+	unsigned int i;
+	for(i = 0; i < strlen(password); ++i){
+		password[i] = password[i] + key;
+	}
+	
+}
 void Register(int login){
 	
 	
@@ -458,6 +501,7 @@ void Register(int login){
 	scanf("%s", &entered_username);
 	printf("Enter Password: ");
 	scanf("%s", &entered_password);
+	
 	FILE *file = fopen("account.txt", "a+");
 	while(fscanf(file, "%s %s", username, password) != EOF){
 		if(strcmp(entered_username, username) == 0){
@@ -468,6 +512,7 @@ void Register(int login){
 	
 	if(Register == 1){
 		FILE *fp = fopen("account.txt", "a+");
+		encrypt(entered_password, 0xFACA); 
 		fprintf(fp,"%s %s\n",entered_username, entered_password);
         fclose(fp);
 		printf("\nYou have successfully registered a account!");
@@ -482,18 +527,18 @@ void Register(int login){
 		
 }
 
-int signin(){
+int signin(char entered_username[20], char entered_password[20]){
 	char username[20];
 	char password[20]; 
 	int login = 0; 
-	char entered_username[20];
-	char entered_password[20];
 	printf("Enter Username: ");
-	scanf("%s", &entered_username);
+	scanf("%s", entered_username);
 	printf("Enter Password: ");
-	scanf("%s", &entered_password);
+	scanf("%s", entered_password);
+	
 	FILE *file = fopen("account.txt", "a+");
 	while(fscanf(file, "%s %s", username, password) != EOF){
+		decrypt(password, 0xFACA); 
 		if((strcmp(entered_username, username) == 0) && (strcmp(entered_password, password) ==0)){
 			login = 1;
 		}
@@ -502,6 +547,9 @@ int signin(){
 	
 	return login; 
 }
+
+
+
 	
 
 
@@ -515,629 +563,592 @@ int main()
 		char username[20];
 		char password[20];
 		
-		printf("0 - Quit, 1 - Login, 2 - Register");
+		printf("0 - Quit, 1 - Login, 2 - Register: ");
 		
 			
 		scanf("%d", &login); 
-		if(login == 2){
+		if(login == 0){
+			exit(0); 
+		}
+		else if(login == 2){
 			Register(login); 
 		}
-		else{
-			int confirmed = signin(); 
-			if(confirmed == 1){
-			int c;
-			printf("\n0 - Quit, 1 - Multiplayer Game, 2 - Play With Computer, 3 - Games Replays: ");
-			scanf("%d", &c);
-			if(c == 0){
-				exit(0);
-			}
-			else if(c == 1){
-				char confirm[20]; 
+		else if(login == 1){
+			int confirmed = signin(username, password); 
+			char * fileName = strcat(username, ".txt"); 
+			if(confirmed == 1){ 
+				int c;
+				int quit = 0; 
 				do{
-					reset();
-		
-					int player = 1, i, choice;
-
-					char mark;
-					struct Stack * undoChoices = createStack(9);
-					struct Stack * undoMarks = createStack(9); 
-					struct Stack * redoChoices = createStack(9);
-					struct Stack * redoMarks = createStack(9); 
+					printf("\n0 - Quit, 1 - Multiplayer Game, 2 - Play With Computer, 3 - Games Replays: ");
+					scanf("%d", &c);
+					if(c == 0){
+						quit = 1; 
+					}
+					else if(c == 1){
+					
+						char confirm[20]; 
+						do{
+							reset();
+							int player = 1, i, choice;
+							char mark;
+							struct Stack * undoChoices = createStack(9);
+							struct Stack * undoMarks = createStack(9); 
+							struct Stack * redoChoices = createStack(9);
+							struct Stack * redoMarks = createStack(9); 
 	
-    
-        
-					do {
-						board();
-						player = (player % 2) ? 1 : 2;
-
-						printf("Player %d, enter a number:  ", player);
-						scanf("%d", &choice);
-
-						mark = (player == 1) ? 'X' : 'O';
-
-						if(choice == 1 && square[1] == '1'){
-							square[1] = mark;
-							destroy(redoChoices); 
-							destroy(redoMarks); 
-						
-							push(undoChoices, '1');
-							push(undoMarks, mark); 
-						}
-	        
-						else if(choice == 2 && square[2] == '2'){
-							square[2] = mark;
-							destroy(redoChoices); 
-							destroy(redoMarks); 
-							push(undoChoices, '2');
-							push(undoMarks, mark); 
-						}
-            
-						else if(choice == 3 && square[3] == '3'){
-							square[3] = mark;
-							destroy(redoChoices); 
-							destroy(redoMarks); 
-							push(undoChoices, '3');
-							push(undoMarks, mark); 
-						}
-            
-						else if(choice == 4 && square[4] == '4'){
-							square[4] = mark;
-							destroy(redoChoices); 
-							destroy(redoMarks); 
-							push(undoChoices, '4');
-							push(undoMarks, mark);
-						}
-            
-						else if(choice == 5 && square[5] == '5'){
-							square[5] = mark;
-							destroy(redoChoices); 
-							destroy(redoMarks); 
-							push(undoChoices, '5');
-							push(undoMarks, mark);
-						}
-			
-            
-						else if(choice == 6 && square[6] == '6'){
-							square[6] = mark;
-							destroy(redoChoices); 
-							destroy(redoMarks); 
-							push(undoChoices, '6');
-							push(undoMarks, mark);
-							}
-			
-            
-						else if(choice == 7 && square[7] == '7'){
-							square[7] = mark;
-							destroy(redoChoices); 
-							destroy(redoMarks); 
-							push(undoChoices, '7');
-							push(undoMarks, mark);
-						}
-			
-            
-						else if(choice == 8 && square[8] == '8'){
-							square[8] = mark;
-							destroy(redoChoices); 
-							destroy(redoMarks); 
-							push(undoChoices, '8');
-							push(undoMarks, mark);
-						}
-			
-            
-						else if(choice == 9 && square[9] == '9'){
-							square[9] = mark;
-							destroy(redoChoices); 
-							destroy(redoMarks); 
-							push(undoChoices, '9');
-							push(undoMarks, mark); 
-						}
-					
-						else if(choice == 10){
-							if(!(isEmpty(undoMarks)) && !(isEmpty(undoChoices)) && !(isFull(redoMarks)) && !(isFull(redoMarks))){
-								player--;
-								undo(undoMarks, undoChoices, redoMarks, redoChoices);
-								board(); 
-							}
-							else{
-								player--; 
-								printf("Sorry you can't undo right now!");
-								getch();
-							}
-						}
-						else if(choice == 11){
-							if(!(isEmpty(redoMarks)) && !(isEmpty(redoChoices)) && !(isFull(undoMarks)) && !(isFull(undoChoices))){
-								player--;
-								redo(undoMarks, undoChoices, redoMarks, redoChoices);
+							do {
 								board();
-							}
-							else{
-								player--;
-								printf("Sorry you can't redo right now!");
-								getch();
-							}
-						}
-						else
-						{
-							printf("Invalid move ");
-							player--;
-							getch();
-						}
-						i = checkwin();
-
-						player++;
-					}while (i == -1);
-    
-					board();
-    
-					if (i == 1){
-						printf("==>\aPlayer %d win ", --player);
-						for(int i = 0; i <= undoChoices->top; i++){
-							printf("%c", undoChoices->array[i]);
-						}
-						printf("\n");
-						for(int i = 0; i <= undoMarks->top;  i++){
-							printf("%c", undoMarks->array[i]);
-						}
-						write_arrays_to_file(undoChoices, undoMarks); 
-						getch();
-						reset(); 
-						replay(undoChoices, undoMarks); 
-						printf("\nPlay Again?");
-						scanf("%s", &confirm); 
-			
-		
-					}
-					else{
-						printf("==>\aGame draw");
-						for(int i = 0; i <= undoChoices->top; i++){
-							printf("%c", undoChoices->array[i]);
-						}
-						printf("\n");
-						for(int i = 0; i <= undoMarks->top; i++){
-							printf("%c", undoMarks->array[i]);
-						}
-						write_arrays_to_file(undoChoices, undoMarks); 
-						getch();
-						reset(); 
-						replay(undoChoices, undoMarks); 
-			
-						printf("\nPlay Again?");
-						scanf("%s", &confirm); 
-					}
-					getch();
-				}while(strcmp(confirm, "yes") == 0);
-			}
-			else if(c == 3){
-				reset(); 
-				board();
-				struct Game * game = NULL;
-				printf("test 1\n"); 
-				ReadFromFileToLinkedList(&game);
-				printf("test 2\n"); 
-				int game_id = 0; 
-				printf("\nEnter Game Id: ");
-				scanf("%d", &game_id);
-				search(&game, game_id); 	
-				printf("game_id is %d\n", game_id); 
-			}
-			else if(c == 2){
-				char confirm[20]; 
-				do{
-					reset();
-		
-					int player = 1, i, choice;
-				
-
-					char mark;
-					struct Stack * undoChoices = createStack(9);
-					struct Stack * undoMarks = createStack(9); 
-					struct Stack * redoChoices = createStack(9);
-					struct Stack * redoMarks = createStack(9); 
-					char previousMove;  
-    
-        
-					do {
-						board();
-					 
-						player = (player % 2) ? 1 : 2;
-						mark = (player == 1) ? 'X' : 'O';
-						if(player == 1){
-							printf("Player %d, enter a number:  ", player);
-							scanf("%d", &choice);
-						}
-						else{
-							choice = findBestMove(square); 
-						}
-
-					
-					
-						if(choice == 1 && square[1] == '1'){
-							square[1] = mark;
-							destroy(redoChoices); 
-							destroy(redoMarks); 
-						
-							push(undoChoices, '1');
-							push(undoMarks, mark); 
-							previousMove = mark; 
-						
-						}
-	        
-						else if(choice == 2 && square[2] == '2'){
-							square[2] = mark;
-							destroy(redoChoices); 
-							destroy(redoMarks); 
-							push(undoChoices, '2');
-							push(undoMarks, mark); 
-							previousMove = mark; 
-						}	
+								player = (player % 2) ? 1 : 2;
+								printf("Player %d, enter a number:  ", player);
+								scanf("%d", &choice);
+								mark = (player == 1) ? 'X' : 'O';
+								if(choice == 1 && square[1] == '1'){
+									square[1] = mark;
+									destroy(redoChoices); 
+									destroy(redoMarks); 	
+									push(undoChoices, '1');
+									push(undoMarks, mark); 
+								}
+								else if(choice == 2 && square[2] == '2'){
+									square[2] = mark;
+									destroy(redoChoices); 
+									destroy(redoMarks); 
+									push(undoChoices, '2');
+									push(undoMarks, mark); 
+								}
+								else if(choice == 3 && square[3] == '3'){
+									square[3] = mark;
+									destroy(redoChoices); 
+									destroy(redoMarks); 
+									push(undoChoices, '3');
+									push(undoMarks, mark); 
+								}
+								else if(choice == 4 && square[4] == '4'){
+									square[4] = mark;
+									destroy(redoChoices); 
+									destroy(redoMarks); 
+									push(undoChoices, '4');
+									push(undoMarks, mark);
+								}  
+								else if(choice == 5 && square[5] == '5'){
+									square[5] = mark;
+									destroy(redoChoices); 
+									destroy(redoMarks); 
+									push(undoChoices, '5');
+									push(undoMarks, mark);
+								}
+								else if(choice == 6 && square[6] == '6'){
+									square[6] = mark;
+									destroy(redoChoices); 
+									destroy(redoMarks); 
+									push(undoChoices, '6');
+									push(undoMarks, mark);
+								}
             
-						else if(choice == 3 && square[3] == '3'){
-							square[3] = mark;
-							destroy(redoChoices); 
-							destroy(redoMarks); 
-							push(undoChoices, '3');
-							push(undoMarks, mark); 
-							previousMove = mark; 
-						}
-            
-						else if(choice == 4 && square[4] == '4'){
-							square[4] = mark;
-							destroy(redoChoices); 
-							destroy(redoMarks); 
-							push(undoChoices, '4');
-							push(undoMarks, mark);
-							previousMove = mark; 
-						}
-            
-						else if(choice == 5 && square[5] == '5'){
-							square[5] = mark;
-							destroy(redoChoices); 
-							destroy(redoMarks); 
-							push(undoChoices, '5');
-							push(undoMarks, mark);
-							previousMove = mark; 
-						}
-			
-            
-						else if(choice == 6 && square[6] == '6'){
-							square[6] = mark;
-							destroy(redoChoices); 
-							destroy(redoMarks); 
-							push(undoChoices, '6');
-							push(undoMarks, mark);
-							previousMove = mark; 
-						}
-			
-            
-						else if(choice == 7 && square[7] == '7'){
-							square[7] = mark;
-							destroy(redoChoices); 
-							destroy(redoMarks); 
-							push(undoChoices, '7');
-							push(undoMarks, mark);
-							previousMove = mark; 
-						}
-			
-            
-						else if(choice == 8 && square[8] == '8'){
-							square[8] = mark;
-							destroy(redoChoices); 
-							destroy(redoMarks); 
-							push(undoChoices, '8');
-							push(undoMarks, mark);
-							previousMove = mark; 
-						}
-			
-            
-						else if(choice == 9 && square[9] == '9'){
-							square[9] = mark;
-							destroy(redoChoices); 
-							destroy(redoMarks); 
-							push(undoChoices, '9');
-							push(undoMarks, mark); 
-							previousMove = mark; 
-						}
-					
-						else if(choice == 10){
-							if(!(isEmpty(undoMarks)) && !(isEmpty(undoChoices)) && !(isFull(redoMarks)) && !(isFull(redoMarks))){
-								player--;
-								undo(undoMarks, undoChoices, redoMarks, redoChoices);
-								board(); 
-							}
-							else{
-								player--; 
-									
-								printf("Sorry you can't undo right now!");
-								getch();
-							}
-						}
-						else if(choice == 11){
-							if(!(isEmpty(redoMarks)) && !(isEmpty(redoChoices)) && !(isFull(undoMarks)) && !(isFull(undoChoices))){
-								player--;
-								redo(undoMarks, undoChoices, redoMarks, redoChoices);
-								board();
-							}
-							else{
-								player--;
-								printf("Sorry you can't redo right now!");
-								getch();
-							}
-						}
-						else{
-						
-					
-							printf("Invalid move ");
-							player--;
-							getch();
-						}	
-						i = checkwin();
-						player++; 
-				
-						//player = 2; 
-					
-					}while (i == -1);
-    
-					board();
-    
-					if (i == 1){
-						printf("==>\aPlayer %d win ", --player);
-						for(int i = 0; i <= undoChoices->top; i++){
-							printf("%c", undoChoices->array[i]);
-						}	
-						printf("\n");
-						for(int i = 0; i <= undoMarks->top;  i++){
-							printf("%c", undoMarks->array[i]);
-						}
-						write_arrays_to_file(undoChoices, undoMarks); 
-						getch();
-						reset(); 
-						replay(undoChoices, undoMarks); 
-						printf("\nPlay Again?");
-						scanf("%s", &confirm); 
-			
-		
-					}
-					else{
-						printf("==>\aGame draw");
-						for(int i = 0; i <= undoChoices->top; i++){
-							printf("%c", undoChoices->array[i]);
-						}
-						printf("\n");
-						for(int i = 0; i <= undoMarks->top; i++){
-							printf("%c", undoMarks->array[i]);
-						}
-						write_arrays_to_file(undoChoices, undoMarks); 
-						getch();
-						reset(); 
-						replay(undoChoices, undoMarks); 
-			
-						printf("\nPlay Again?");
-						scanf("%s", &confirm); 
-					}
-					getch();
-				}while(strcmp(confirm, "yes") == 0);
-			}
-		
-			else if(c == 4){
-				char confirm[20]; 
-				do{
-					reset();
-			
-					int player = 1, i, choice;
-				
-
-					char mark;
-					struct Stack * undoChoices = createStack(9);
-					struct Stack * undoMarks = createStack(9); 
-					struct Stack * redoChoices = createStack(9);
-					struct Stack * redoMarks = createStack(9); 
-					char previousMove;  
-    
-        
-					do {
-						board();
-					 
-						player = (player % 2) ? 1 : 2;
-						mark = (player == 1) ? 'X' : 'O';
-						if(player == 1){
-							printf("Player %d, enter a number:  ", player);
-							scanf("%d", &choice);
-						}
-						else{
-							choice = rand() % 9;  
-						}	
-
-					
-					
-						if(choice == 1 && square[1] == '1'){
-							square[1] = mark;
-							destroy(redoChoices); 
-							destroy(redoMarks); 
-						
-							push(undoChoices, '1');
-							push(undoMarks, mark); 
-							previousMove = mark; 
-						
-						}
-	        
-						else if(choice == 2 && square[2] == '2'){
-							square[2] = mark;
-							destroy(redoChoices); 
-							destroy(redoMarks); 
-							push(undoChoices, '2');
-							push(undoMarks, mark); 
-							previousMove = mark; 
-						}
-            
-						else if(choice == 3 && square[3] == '3'){
-							square[3] = mark;
-							destroy(redoChoices); 
-							destroy(redoMarks); 
-							push(undoChoices, '3');
-							push(undoMarks, mark); 
-							previousMove = mark; 
-						}
-            
-						else if(choice == 4 && square[4] == '4'){
-							square[4] = mark;
-							destroy(redoChoices); 
-							destroy(redoMarks); 
-							push(undoChoices, '4');
-							push(undoMarks, mark);
-							previousMove = mark; 
-						}
-            
-						else if(choice == 5 && square[5] == '5'){
-							square[5] = mark;
-							destroy(redoChoices); 
-							destroy(redoMarks); 
-							push(undoChoices, '5');
-							push(undoMarks, mark);
-							previousMove = mark; 
-						}
-			
-            
-						else if(choice == 6 && square[6] == '6'){
-							square[6] = mark;
-							destroy(redoChoices); 
-							destroy(redoMarks); 
-							push(undoChoices, '6');
-							push(undoMarks, mark);
-							previousMove = mark; 
-						}
-			
-            
-						else if(choice == 7 && square[7] == '7'){
-							square[7] = mark;
-							destroy(redoChoices); 
-							destroy(redoMarks); 
-							push(undoChoices, '7');
-							push(undoMarks, mark);
-							previousMove = mark; 
-						}
-			
-            
-						else if(choice == 8 && square[8] == '8'){
-							square[8] = mark;
-							destroy(redoChoices); 
-							destroy(redoMarks); 
-							push(undoChoices, '8');
-							push(undoMarks, mark);
-							previousMove = mark; 
-						}
-			
-            
-						else if(choice == 9 && square[9] == '9'){
-							square[9] = mark;
-							destroy(redoChoices); 
-							destroy(redoMarks); 
-							push(undoChoices, '9');
-							push(undoMarks, mark); 
-							previousMove = mark; 
-						}
-					
-						else if(choice == 10){
-							if(!(isEmpty(undoMarks)) && !(isEmpty(undoChoices)) && !(isFull(redoMarks)) && !(isFull(redoMarks))){
-								player--;
-								undo(undoMarks, undoChoices, redoMarks, redoChoices);
-								board(); 
-							}
-							else{
-								player--; 
+								else if(choice == 7 && square[7] == '7'){
+									square[7] = mark;
+									destroy(redoChoices); 
+									destroy(redoMarks); 
+									push(undoChoices, '7');
+									push(undoMarks, mark);
+								}
+								else if(choice == 8 && square[8] == '8'){
+									square[8] = mark;
+									destroy(redoChoices); 
+									destroy(redoMarks); 
+									push(undoChoices, '8');
+									push(undoMarks, mark);
+								}
+								else if(choice == 9 && square[9] == '9'){
+									square[9] = mark;
+									destroy(redoChoices); 
+									destroy(redoMarks); 
+									push(undoChoices, '9');
+									push(undoMarks, mark); 
+								}
+								else if(choice == 10){
+									if(!(isEmpty(undoMarks)) && !(isEmpty(undoChoices)) && !(isFull(redoMarks)) && !(isFull(redoMarks))){		
+										undo(undoMarks, undoChoices, redoMarks, redoChoices);
+										board(); 
+									}	
+									else{
+										player--; 
+										printf("Sorry you can't undo right now!");
+										getch();
+									}
+								}
+								else if(choice == 11){
+									if(!(isEmpty(redoMarks)) && !(isEmpty(redoChoices)) && !(isFull(undoMarks)) && !(isFull(undoChoices))){			
+										redo(undoMarks, undoChoices, redoMarks, redoChoices);
+										board();
+									}
+									else{
+										player--;
+										printf("Sorry you can't redo right now!");
+										getch();
+									}
+								}
 								
-								printf("Sorry you can't undo right now!");
+								else
+								{
+									printf("Invalid move ");
+									player--;
+									getch();
+								}
+								i = checkwin();
+								player++;
+							}while (i == -1);
+							board();
+							if (i == 1){
+								printf("==>\aPlayer %d win ", --player);
+								write_arrays_to_file(undoChoices, undoMarks, fileName);
+								write_arrays_to_file(undoChoices, undoMarks, "list.txt"); 
 								getch();
-							}
-						}
-						else if(choice == 11){
-							if(!(isEmpty(redoMarks)) && !(isEmpty(redoChoices)) && !(isFull(undoMarks)) && !(isFull(undoChoices))){
-								player--;
-								redo(undoMarks, undoChoices, redoMarks, redoChoices);
-								board();
+								reset(); 
+								replay(undoChoices, undoMarks); 
+								printf("\nPlay Again?");
+								scanf("%s", &confirm); 
 							}
 							else{
-								player--;
-								printf("Sorry you can't redo right now!");
+								printf("==>\aGame draw");
+								write_arrays_to_file(undoChoices, undoMarks, fileName);
+								write_arrays_to_file(undoChoices, undoMarks, "list.txt"); 
 								getch();
+								reset(); 
+								replay(undoChoices, undoMarks); 
+								printf("\nPlay Again?");
+								scanf("%s", &confirm); 
 							}
-						}
-						else{
-							if(player == 1){
+							getch();
+						}while(strcmp(confirm, "yes") == 0);
+					}
 					
-								printf("Invalid move ");
-								player--;
-								getch();
-							}
-							else{
-								player--;
-							}							
-						}	
-						i = checkwin();
-						player++; 
-				
-						//player = 2; 
 					
-					}while (i == -1);
-    
-					board();
-    
-					if (i == 1){
-						printf("==>\aPlayer %d win ", --player);
-						for(int i = 0; i <= undoChoices->top; i++){
-							printf("%c", undoChoices->array[i]);
-						}
-						printf("\n");
-						for(int i = 0; i <= undoMarks->top;  i++){
-							printf("%c", undoMarks->array[i]);
-						}
-						write_arrays_to_file(undoChoices, undoMarks); 
-						getch();
+					else if(c == 3){
 						reset(); 
-						replay(undoChoices, undoMarks); 
-						printf("\nPlay Again?");
-						scanf("%s", &confirm); 
-			
+						board();
+						struct Game * game = NULL;
+						printf("test 1\n"); 
+						ReadFromFileToLinkedList(&game, "list.txt");
+						printf("test 2\n"); 
+						int game_id = 0; 
+						printf("\nEnter Game Id: ");
+						scanf("%d", &game_id);
+						search(&game, game_id); 	
+						printf("game_id is %d\n", game_id); 
+					}
+					else if(c == 2){
+						char confirm[20]; 
+						do{
+							reset();
 		
+							int player = 1, i, choice;
+				
+
+							char mark;
+							struct Stack * undoChoices = createStack(9);
+							struct Stack * undoMarks = createStack(9); 
+							struct Stack * redoChoices = createStack(9);
+							struct Stack * redoMarks = createStack(9); 
+							char previousMove;  
+    
+        
+							do {
+								board();
+					 
+								player = (player % 2) ? 1 : 2;
+								mark = (player == 1) ? 'X' : 'O';
+								if(player == 1){
+									printf("Player %d, enter a number:  ", player);
+									scanf("%d", &choice);
+								}
+								else{
+									choice = findBestMove(square); 
+								}
+								if(choice == 1 && square[1] == '1'){
+									square[1] = mark;
+									destroy(redoChoices); 
+									destroy(redoMarks); 
+									push(undoChoices, '1');
+									push(undoMarks, mark); 
+									previousMove = mark; 
+						
+								}
+	        
+								else if(choice == 2 && square[2] == '2'){
+									square[2] = mark;
+									destroy(redoChoices); 
+									destroy(redoMarks); 
+									push(undoChoices, '2');
+									push(undoMarks, mark); 
+									previousMove = mark; 
+								}	
+            
+								else if(choice == 3 && square[3] == '3'){
+									square[3] = mark;
+									destroy(redoChoices); 
+									destroy(redoMarks); 
+									push(undoChoices, '3');
+									push(undoMarks, mark); 
+									previousMove = mark; 
+								}
+            
+								else if(choice == 4 && square[4] == '4'){
+									square[4] = mark;
+									destroy(redoChoices); 
+									destroy(redoMarks); 
+									push(undoChoices, '4');
+									push(undoMarks, mark);
+									previousMove = mark; 
+								}
+            
+								else if(choice == 5 && square[5] == '5'){
+									square[5] = mark;
+									destroy(redoChoices); 
+									destroy(redoMarks); 
+									push(undoChoices, '5');
+									push(undoMarks, mark);
+									previousMove = mark; 
+								}
+            
+								else if(choice == 6 && square[6] == '6'){
+									square[6] = mark;
+									destroy(redoChoices); 
+									destroy(redoMarks); 
+									push(undoChoices, '6');
+									push(undoMarks, mark);
+									previousMove = mark; 
+								}
+		
+								else if(choice == 7 && square[7] == '7'){
+									square[7] = mark;
+									destroy(redoChoices); 
+									destroy(redoMarks); 
+									push(undoChoices, '7');
+									push(undoMarks, mark);
+									previousMove = mark; 
+								}
+			
+								else if(choice == 8 && square[8] == '8'){
+									square[8] = mark;
+									destroy(redoChoices); 
+									destroy(redoMarks); 
+									push(undoChoices, '8');
+									push(undoMarks, mark);
+									previousMove = mark; 
+								}
+		
+								else if(choice == 9 && square[9] == '9'){
+									square[9] = mark;
+									destroy(redoChoices); 
+									destroy(redoMarks); 
+									push(undoChoices, '9');
+									push(undoMarks, mark); 
+									previousMove = mark; 
+								}
+								else if(choice == 10){
+									if(!(isEmpty(undoMarks)) && !(isEmpty(undoChoices)) && !(isFull(redoMarks)) && !(isFull(redoMarks))){
+										
+										undo(undoMarks, undoChoices, redoMarks, redoChoices);
+										board(); 
+									}
+									else{
+										player--; 		
+										printf("Sorry you can't undo right now!");
+										getch();
+									}
+								}
+								else if(choice == 11){
+									if(!(isEmpty(redoMarks)) && !(isEmpty(redoChoices)) && !(isFull(undoMarks)) && !(isFull(undoChoices))){
+										
+										redo(undoMarks, undoChoices, redoMarks, redoChoices);
+										board();
+									}
+									else{
+										player--;
+										printf("Sorry you can't redo right now!");
+										getch();
+									}
+								}
+								else{
+									printf("Invalid move ");
+									player--;
+									getch();
+								}		
+								i = checkwin();
+								player++; 
+				 	
+							}while (i == -1);
+    
+							board();
+    
+							if (i == 1){
+								printf("==>\aPlayer %d win ", --player);
+							
+								write_arrays_to_file(undoChoices, undoMarks, fileName);
+								write_arrays_to_file(undoChoices, undoMarks, "list.txt"); 
+								getch();
+								reset(); 
+								replay(undoChoices, undoMarks); 
+								printf("\nPlay Again?");
+								scanf("%s", &confirm); 
+			
+							}
+							else{
+								printf("==>\aGame draw");
+								
+								write_arrays_to_file(undoChoices, undoMarks, fileName);
+								write_arrays_to_file(undoChoices, undoMarks, "list.txt"); 
+								getch();
+								reset(); 
+								replay(undoChoices, undoMarks); 
+				
+								printf("\nPlay Again?");
+								scanf("%s", &confirm); 
+							}
+							getch();
+						}while(strcmp(confirm, "yes") == 0);
+					}
+			
+					else if(c == 4){
+						char confirm[20]; 
+						do{
+							reset();
+				
+							int player = 1, i, choice;
+					
+
+							char mark;
+							struct Stack * undoChoices = createStack(9);
+							struct Stack * undoMarks = createStack(9); 
+							struct Stack * redoChoices = createStack(9);
+							struct Stack * redoMarks = createStack(9); 
+							char previousMove;  
+		
+			
+							do {
+								board();
+						 
+								player = (player % 2) ? 1 : 2;
+								mark = (player == 1) ? 'X' : 'O';
+								if(player == 1){
+									printf("Player %d, enter a number:  ", player);
+									scanf("%d", &choice);
+								}
+								else{
+									choice = rand() % 9;  
+								}	
+
+						
+						
+								if(choice == 1 && square[1] == '1'){
+									square[1] = mark;
+									destroy(redoChoices); 
+									destroy(redoMarks); 
+									push(undoChoices, '1');
+									push(undoMarks, mark); 
+									previousMove = mark; 
+							
+								}
+				
+								else if(choice == 2 && square[2] == '2'){
+									square[2] = mark;
+									destroy(redoChoices); 
+									destroy(redoMarks); 
+									push(undoChoices, '2');
+									push(undoMarks, mark); 
+									previousMove = mark; 
+								}
+				
+								else if(choice == 3 && square[3] == '3'){
+									square[3] = mark;
+									destroy(redoChoices); 
+									destroy(redoMarks); 
+									push(undoChoices, '3');
+									push(undoMarks, mark); 
+									previousMove = mark; 
+								}
+				
+								else if(choice == 4 && square[4] == '4'){
+									square[4] = mark;
+									destroy(redoChoices); 
+									destroy(redoMarks); 
+									push(undoChoices, '4');
+									push(undoMarks, mark);
+									previousMove = mark; 
+								}
+				
+								else if(choice == 5 && square[5] == '5'){
+									square[5] = mark;
+									destroy(redoChoices); 
+									destroy(redoMarks); 
+									push(undoChoices, '5');
+									push(undoMarks, mark);
+									previousMove = mark; 
+								}
+				
+				
+								else if(choice == 6 && square[6] == '6'){
+									square[6] = mark;
+									destroy(redoChoices); 
+									destroy(redoMarks); 
+									push(undoChoices, '6');
+									push(undoMarks, mark);
+									previousMove = mark; 
+								}
+				
+				
+								else if(choice == 7 && square[7] == '7'){
+									square[7] = mark;
+									destroy(redoChoices); 
+									destroy(redoMarks); 
+									push(undoChoices, '7');
+									push(undoMarks, mark);
+									previousMove = mark; 
+								}
+				
+				
+								else if(choice == 8 && square[8] == '8'){
+									square[8] = mark;
+									destroy(redoChoices); 
+									destroy(redoMarks); 
+									push(undoChoices, '8');
+									push(undoMarks, mark);
+									previousMove = mark; 
+								}
+				
+				
+								else if(choice == 9 && square[9] == '9'){
+									square[9] = mark;
+									destroy(redoChoices); 
+									destroy(redoMarks); 
+									push(undoChoices, '9');
+									push(undoMarks, mark); 
+									previousMove = mark; 
+								}
+						
+								else if(choice == 10){
+									if(!(isEmpty(undoMarks)) && !(isEmpty(undoChoices)) && !(isFull(redoMarks)) && !(isFull(redoMarks))){
+										
+										undo(undoMarks, undoChoices, redoMarks, redoChoices);
+										board(); 
+									}
+									else{
+										
+										player--;
+										printf("Sorry you can't undo right now!");
+										getch();
+									}
+								}
+								else if(choice == 11){
+									if(!(isEmpty(redoMarks)) && !(isEmpty(redoChoices)) && !(isFull(undoMarks)) && !(isFull(undoChoices))){
+										
+										redo(undoMarks, undoChoices, redoMarks, redoChoices);
+										board();
+									}
+									else{
+										player--;
+										printf("Sorry you can't redo right now!");
+										getch();
+									}
+								}
+								else{
+									if(player == 1){
+						
+										printf("Invalid move ");
+										player--;
+										getch();
+									}
+									else{
+										player--;
+									}							
+								}	
+								i = checkwin();
+								player++; 
+					
+							//player = 2; 
+						
+							}while (i == -1);
+		
+							board();
+		
+							if (i == 1){
+								printf("==>\aPlayer %d win ", --player);
+								for(int i = 0; i <= undoChoices->top; i++){
+									printf("%c", undoChoices->array[i]);
+								}
+								printf("\n");
+								for(int i = 0; i <= undoMarks->top;  i++){
+									printf("%c", undoMarks->array[i]);
+								}
+								
+								write_arrays_to_file(undoChoices, undoMarks, fileName); 
+								write_arrays_to_file(undoChoices, undoMarks, "list.txt"); 
+								getch();
+								reset(); 
+								replay(undoChoices, undoMarks); 
+								printf("\nPlay Again?");
+								scanf("%s", &confirm); 
+				
+			
+							}
+							else{
+								printf("==>\aGame draw");
+								for(int i = 0; i <= undoChoices->top; i++){
+									printf("%c", undoChoices->array[i]);
+								}
+								printf("\n");
+								for(int i = 0; i <= undoMarks->top; i++){
+									printf("%c", undoMarks->array[i]);
+								}
+								write_arrays_to_file(undoChoices, undoMarks, fileName);
+								write_arrays_to_file(undoChoices, undoMarks, "list.txt"); 
+								getch();
+								reset(); 
+								replay(undoChoices, undoMarks); 
+				
+								printf("\nPlay Again?");
+								scanf("%s", &confirm); 
+							}
+							getch();
+						}while(strcmp(confirm, "yes") == 0);
+					}
+					else if(c == 5){
+						reset(); 
+						board();
+						struct Game * game = NULL;
+						printf("test 1\n"); 
+						ReadFromFileToLinkedList(&game, fileName);
+						printf("test 2\n"); 
+						int game_id = 0; 
+						printf("\nEnter Game Id: ");
+						scanf("%d", &game_id);
+						search(&game, game_id); 	
+						printf("game_id is %d\n", game_id); 
 					}
 					else{
-						printf("==>\aGame draw");
-						for(int i = 0; i <= undoChoices->top; i++){
-							printf("%c", undoChoices->array[i]);
-						}
-						printf("\n");
-						for(int i = 0; i <= undoMarks->top; i++){
-							printf("%c", undoMarks->array[i]);
-						}
-						write_arrays_to_file(undoChoices, undoMarks); 
-						getch();
-						reset(); 
-						replay(undoChoices, undoMarks); 
-			
-						printf("\nPlay Again?");
-						scanf("%s", &confirm); 
+						printf("Invalid Choice");
 					}
-					getch();
-				}while(strcmp(confirm, "yes") == 0);
+				}while(quit == 0); 
 			}
-			}
+				
 	
 			
+		
+			else{
+				printf("\nUsername or password is incorrect!");
+			}
+		
 		}
-		else{
-			printf("\nUsername or password is incorrect!");
-		}
+	
 		
 		
+	}
 	
 	return 0;
 }
 
-/*********************************************
-FUNCTION TO RETURN GAME STATUS
-1 FOR GAME IS OVER WITH RESULT
--1 FOR GAME IS IN PROGRESS
-O GAME IS OVER AND NO RESULT
- **********************************************/
 
 int checkwin()
 {
@@ -1175,9 +1186,7 @@ int checkwin()
 }
 
 
-/*******************************************************************
-FUNCTION TO DRAW BOARD OF TIC TAC TOE WITH PLAYERS MARK
- ********************************************************************/
+
 
 
 void board()
@@ -1185,8 +1194,9 @@ void board()
     system("cls");
     printf("\n\n\t Qaasim Tic Tac Toe Game\n\n");
 
-    printf("Player 1 (X)  -  Player 2 (O)\n\n\n");
-
+    printf("Player 1 (X)  -  Player 2 (O)\n");
+	printf("Press 10 to Undo, 11 to Redo\n\n"); 
+	
 
     printf("     |     |     \n");
     printf("  %c  |  %c  |  %c \n", square[1], square[2], square[3]);
