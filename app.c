@@ -525,7 +525,7 @@ void Register(int login){
 	printf("Enter Password: ");
 	scanf("%s", &entered_password);
 	
-	FILE *file = fopen("account.txt", "a+");
+	FILE *file = fopen("accounts.txt", "a+");
 	while(fscanf(file, "%s %s", username, password) != EOF){
 		if(strcmp(entered_username, username) == 0){
 			Register = 0;
@@ -534,7 +534,7 @@ void Register(int login){
 	fclose(file); 
 	
 	if(Register == 1){
-		FILE *fp = fopen("account.txt", "a+");
+		FILE *fp = fopen("accounts.txt", "a+");
 		encrypt(entered_password, 0xFACA); 
 		fprintf(fp,"%s %s\n",entered_username, entered_password);
         fclose(fp);
@@ -559,7 +559,7 @@ int signin(char entered_username[20], char entered_password[20]){
 	printf("Enter Password: ");
 	scanf("%s", entered_password);
 	
-	FILE *file = fopen("account.txt", "a+");
+	FILE *file = fopen("accounts.txt", "a+");
 	while(fscanf(file, "%s %s", username, password) != EOF){
 		decrypt(password, 0xFACA); 
 		if((strcmp(entered_username, username) == 0) && (strcmp(entered_password, password) ==0)){
